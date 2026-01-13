@@ -34,7 +34,7 @@ public static ErrorOr<Success> ValidateCreateRecurringTransactionRequest(string 
     }
 
     if (Regex.IsMatch(name, @"\d"))
-            return CategoryErrors.NameContainsNumbers;
+            return RecurringTransactionErrors.NameContainsNumbers;
 
     
 
