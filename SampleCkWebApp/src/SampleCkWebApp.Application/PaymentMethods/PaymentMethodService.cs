@@ -24,11 +24,11 @@ public class PaymentMethodService : IPaymentMethodService
 
 
 
-    public async Task<ErrorOr<GetPaymentMethodsResult>> GetPaymentMethodsAsync(CancellationToken cancellationToken)
+    public async Task<ErrorOr<GetPaymentMethodsResult>> GetPaymentMethodsAsync(int userId, CancellationToken cancellationToken)
     {
         
 
-        var result = await _paymentMethodRepository.GetPaymentMethodsAsync(cancellationToken);
+        var result = await _paymentMethodRepository.GetPaymentMethodsAsync(userId, cancellationToken);
 
         if(result.IsError)
         {
@@ -50,11 +50,11 @@ public class PaymentMethodService : IPaymentMethodService
     }
 
 
-    public async Task<ErrorOr<PaymentMethod>> GetPaymentMethodByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PaymentMethod>> GetPaymentMethodByIdAsync(int id, int userId,CancellationToken cancellationToken)
     {
         
 
-        var result = await _paymentMethodRepository.GetPaymentMethodByIdAsync(id, cancellationToken);
+        var result = await _paymentMethodRepository.GetPaymentMethodByIdAsync(id, userId, cancellationToken);
         return result;
 
 
@@ -62,7 +62,7 @@ public class PaymentMethodService : IPaymentMethodService
     }
 
 
-    public async Task<ErrorOr<PaymentMethod>> CreatePaymentMethodAsync(string name, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PaymentMethod>> CreatePaymentMethodAsync(string name, int userId, CancellationToken cancellationToken)
     {
         
         var validationResult = PaymentMethodValidator.ValidateCreatePaymentMethodRequest(name);
@@ -73,7 +73,7 @@ public class PaymentMethodService : IPaymentMethodService
             return validationResult.Errors;
         }
 
-        var nameCheck = await _paymentMethodRepository.GetPaymentMethodByNameAsync(name, cancellationToken); 
+        var nameCheck = await _paymentMethodRepository.GetPaymentMethodByNameAsync(name, userId, cancellationToken); 
         if (!nameCheck.IsError) 
         { 
             return PaymentMethodErrors.DuplicateName;
@@ -91,7 +91,8 @@ public class PaymentMethodService : IPaymentMethodService
 
             Name = name,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            UserId = userId
 
         };
 
@@ -102,11 +103,11 @@ public class PaymentMethodService : IPaymentMethodService
 
     }
 
-    public async Task<ErrorOr<PaymentMethod>> UpdatePaymentMethodAsync (int id, string name, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PaymentMethod>> UpdatePaymentMethodAsync (int id, string name, int userId, CancellationToken cancellationToken)
     {
         
 
-        var existingResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(id, cancellationToken);
+        var existingResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(id, userId,cancellationToken);
 
         if(existingResult.IsError)
         {
@@ -125,7 +126,7 @@ public class PaymentMethodService : IPaymentMethodService
 
         }
 
-        var nameCheck = await _paymentMethodRepository.GetPaymentMethodByNameAsync(name, cancellationToken); 
+        var nameCheck = await _paymentMethodRepository.GetPaymentMethodByNameAsync(name, userId, cancellationToken); 
         
         if (!nameCheck.IsError && nameCheck.Value.Id != id)
         {
@@ -144,7 +145,8 @@ public class PaymentMethodService : IPaymentMethodService
             Id = existingPaymentMethod.Id,
             Name = name,
             CreatedAt = existingPaymentMethod.CreatedAt,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            UserId = existingPaymentMethod.UserId
 
 
         };
@@ -158,10 +160,10 @@ public class PaymentMethodService : IPaymentMethodService
 
 
 
-    public async Task<ErrorOr<bool>> DeletePaymentMethodAsync(int id, CancellationToken cancellationToken)
+    public async Task<ErrorOr<bool>> DeletePaymentMethodAsync(int id, int userId, CancellationToken cancellationToken)
     {
         
-         var existingResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(id, cancellationToken);
+         var existingResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(id, userId, cancellationToken);
 
         if(existingResult.IsError)
         {
@@ -169,7 +171,7 @@ public class PaymentMethodService : IPaymentMethodService
 
         }
             
-        var deletePaymentMethod = await _paymentMethodRepository.DeletePaymentMethodAsync(id, cancellationToken);
+        var deletePaymentMethod = await _paymentMethodRepository.DeletePaymentMethodAsync(id, userId, cancellationToken);
         return deletePaymentMethod; 
 
 

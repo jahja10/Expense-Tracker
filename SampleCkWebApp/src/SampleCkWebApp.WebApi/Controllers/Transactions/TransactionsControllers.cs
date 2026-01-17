@@ -4,11 +4,13 @@ using SampleCkWebApp.Transactions;
 using SampleCkWebApp.Application.Transactions.Interfaces.Application;
 using SampleCkWebApp.Application.Transactions.Mappings;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 
 
 namespace SampleCkWebApp.WebApi.Controllers.Transactions;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 [Produces("application/json")]
@@ -27,8 +29,9 @@ private readonly ITransactionService _transactionService;
     [ProducesResponseType(typeof(GetTransactionsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTransactions(CancellationToken cancellationToken)
-    {
-        var result = await _transactionService.GetTransactionsAsync(cancellationToken);
+    {   
+        var userId = CurrentUserId;
+        var result = await _transactionService.GetTransactionsAsync(userId, cancellationToken);
 
         return result.Match(
             transactionsResult => Ok(transactionsResult.ToResponse()),
@@ -42,7 +45,9 @@ private readonly ITransactionService _transactionService;
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTransactionById([FromRoute, Required] int id, CancellationToken cancellationToken)
     {
-        var result = await _transactionService.GetTransactionByIdAsync(id, cancellationToken);
+
+        var userId = CurrentUserId;
+        var result = await _transactionService.GetTransactionByIdAsync(id, userId, cancellationToken);
 
         return result.Match(
             transaction => Ok(transaction.ToResponse()),
@@ -58,6 +63,8 @@ private readonly ITransactionService _transactionService;
     [FromBody, Required] CreateTransactionRequest request,
     CancellationToken cancellationToken)
     {
+
+       var userId = CurrentUserId;
        var result = await _transactionService.CreateTransactionAsync(
         request.Price,
         request.TransactionDate,
@@ -68,7 +75,7 @@ private readonly ITransactionService _transactionService;
 
             request.Description,
             request.Location,
-            request.UserId,
+            userId,
             request.CategoryId,
             request.PaymentMethodId,
             cancellationToken
@@ -100,9 +107,12 @@ private readonly ITransactionService _transactionService;
         : Enum.Parse<SampleCkWebApp.Domain.Enums.TransactionType>(
         request.TransactionType.Value.ToString(),
         ignoreCase: true);
+        
+        var userId = CurrentUserId;
 
         var result = await _transactionService.UpdateTransactionAsync(
             id,
+            userId,
             request.Price,
             request.TransactionDate,
             transactionType,               
@@ -128,9 +138,13 @@ private readonly ITransactionService _transactionService;
     public async Task<IActionResult> DeleteTransaction(
     [FromRoute, Required] int id,
     CancellationToken cancellationToken)
-{
-    var result = await _transactionService.DeleteTransactionAsync(id, cancellationToken);
+    
+{   
 
+    var userId = CurrentUserId;
+    var result = await _transactionService.DeleteTransactionAsync(id, userId, cancellationToken);
+
+   
     return result.Match(
         _ => NoContent(),
         Problem

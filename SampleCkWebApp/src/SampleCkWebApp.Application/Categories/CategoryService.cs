@@ -25,10 +25,10 @@ public class CategoryService : ICategoryService
 
 
 
-    public async Task <ErrorOr<GetCategoriesResult>> GetCategoriesAsync(CancellationToken cancellationToken)
+    public async Task <ErrorOr<GetCategoriesResult>> GetCategoriesAsync(int userId, CancellationToken cancellationToken)
     {
         
-        var result = await _categoryRepository.GetCategoriesAsync(cancellationToken);
+        var result = await _categoryRepository.GetCategoriesAsync(userId, cancellationToken);
         if (result.IsError)
         {
             
@@ -45,10 +45,10 @@ public class CategoryService : ICategoryService
     }
 
 
-    public async Task <ErrorOr<Category>> GetCategoryByIdAsync (int id, CancellationToken cancellationToken)
+    public async Task <ErrorOr<Category>> GetCategoryByIdAsync (int id, int userId, CancellationToken cancellationToken)
     {
         
-        var result = await _categoryRepository.GetCategoryByIdAsync(id, cancellationToken);
+        var result = await _categoryRepository.GetCategoryByIdAsync(id, userId, cancellationToken);
 
         if(result.IsError)
         {
@@ -66,7 +66,7 @@ public class CategoryService : ICategoryService
 
 
 
-    public async Task<ErrorOr<Category>> CreateCategoryAsync (string name, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Category>> CreateCategoryAsync (string name, int userId, CancellationToken cancellationToken)
     {
         
 
@@ -78,7 +78,7 @@ public class CategoryService : ICategoryService
             return validationResult.Errors;
         }
 
-        var nameCheck = await _categoryRepository.GetCategoryByNameAsync(name, cancellationToken); 
+        var nameCheck = await _categoryRepository.GetCategoryByNameAsync(name, userId, cancellationToken); 
         if (!nameCheck.IsError) 
         { 
             return CategoryErrors.DuplicateName;
@@ -95,7 +95,8 @@ public class CategoryService : ICategoryService
 
             Name = name,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            UserId = userId
 
         };
 
@@ -107,11 +108,11 @@ public class CategoryService : ICategoryService
 
 
 
-    public async Task <ErrorOr<Category>> UpdateCategoryAsync (int id, string name, CancellationToken cancellationToken)
+    public async Task <ErrorOr<Category>> UpdateCategoryAsync (int id, string name, int userId, CancellationToken cancellationToken)
     {
         
 
-        var existingResult = await _categoryRepository.GetCategoryByIdAsync(id, cancellationToken);
+        var existingResult = await _categoryRepository.GetCategoryByIdAsync(id, userId, cancellationToken);
         if (existingResult.IsError)
         {
             
@@ -131,7 +132,7 @@ public class CategoryService : ICategoryService
 
         }
 
-        var nameCheck = await _categoryRepository.GetCategoryByNameAsync(name, cancellationToken); 
+        var nameCheck = await _categoryRepository.GetCategoryByNameAsync(name, userId, cancellationToken); 
         
         if (!nameCheck.IsError && nameCheck.Value.Id != id)
         {
@@ -150,7 +151,8 @@ public class CategoryService : ICategoryService
             Id = existingCategory.Id,
             Name = name,
             CreatedAt = existingCategory.CreatedAt,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            UserId = userId
 
         };
 
@@ -163,10 +165,10 @@ public class CategoryService : ICategoryService
 
 
 
-    public async Task <ErrorOr<bool>> DeleteCategoryAsync(int id, CancellationToken cancellationToken)
+    public async Task <ErrorOr<bool>> DeleteCategoryAsync(int id, int userId, CancellationToken cancellationToken)
     {
         
-        var existingResult = await _categoryRepository.GetCategoryByIdAsync(id, cancellationToken);
+        var existingResult = await _categoryRepository.GetCategoryByIdAsync(id, userId, cancellationToken);
         if(existingResult.IsError)
         {
             
@@ -174,7 +176,7 @@ public class CategoryService : ICategoryService
 
         }
 
-        var deleteResult = await _categoryRepository.DeleteCategoryAsync(id, cancellationToken);
+        var deleteResult = await _categoryRepository.DeleteCategoryAsync(id, userId, cancellationToken);
         return deleteResult;
 
 

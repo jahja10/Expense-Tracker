@@ -2,6 +2,12 @@
 using SampleCkWebApp.WebApi;
 using Serilog;
 using System.Text.Json.Serialization;
+using SampleCkWebApp.Infrastructure.Security;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System;
+
 
 
 
@@ -9,6 +15,7 @@ using SampleCkWebApp.Application.Users;
 using SampleCkWebApp.Application.Users.Interfaces.Application;
 using SampleCkWebApp.Application.Users.Interfaces.Infrastructure;
 using SampleCkWebApp.Infrastructure.Users;
+using SampleCkWebApp.Application.Users.Interfaces;
 
 
 using SampleCkWebApp.Application.Categories;
@@ -39,6 +46,7 @@ using SampleCkWebApp.Application.Budgets.Interfaces.Application;
 using SampleCkWebApp.Application.Budgets.Interfaces.Infrastructure;
 using SampleCkWebApp.Infrastructure.Budgets;
 using SampleCkWebApp.Application.Budgets;
+using SampleCkWebApp.Application.Users.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,7 +80,33 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Unesi: Bearer {tvoj JWT token}"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
+
 
 
 var dbOptions = builder.Configuration.GetDatabaseOptions();
@@ -102,17 +136,46 @@ builder.Services.AddScoped<IRecurringTransactionService, RecurringTransactionSer
 builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
 
+builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
+builder.Services.AddScoped<LogInUser>();
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
 
-builder.Services
-    .AddApplication(builder.Configuration)
-    .AddInfrastructure(builder.Configuration);
+
 
 Log.Logger.Information("Application starting");
+
+    var jwtKey = builder.Configuration["Jwt:Key"]!;
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
+var jwtAudience = builder.Configuration["Jwt:Audience"]!;
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 
 var app = builder.Build();
 
 app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 
 ServicePool.Create(app.Services);
 

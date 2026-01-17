@@ -25,7 +25,7 @@ public class UserRepository : IUserRepository
             await connection.OpenAsync(cancellationToken);
 
             await using var command = new NpgsqlCommand(
-                "SELECT id, name, email, password_hash, created_at, updated_at FROM users ORDER BY id",
+                "SELECT id, name, email, password_hash, created_at, updated_at, role FROM users ORDER BY id",
                 connection
             );
 
@@ -53,7 +53,7 @@ public class UserRepository : IUserRepository
             await connection.OpenAsync(cancellationToken);
 
             await using var command = new NpgsqlCommand(
-                "SELECT id, name, email, password_hash, created_at, updated_at FROM users WHERE id = @id",
+                "SELECT id, name, email, password_hash, created_at, updated_at, role FROM users WHERE id = @id",
                 connection
             );
 
@@ -82,7 +82,7 @@ public class UserRepository : IUserRepository
             await connection.OpenAsync(cancellationToken);
 
             await using var command = new NpgsqlCommand(
-                "SELECT id, name, email, password_hash, created_at, updated_at FROM users WHERE email = @email",
+                "SELECT id, name, email, password_hash, created_at, updated_at, role FROM users WHERE email = @email",
                 connection
             );
 
@@ -113,7 +113,7 @@ public class UserRepository : IUserRepository
             await using var command = new NpgsqlCommand(
                 @"INSERT INTO users(name, email, password_hash, created_at, updated_at)
                   VALUES(@name, @email, @password_hash, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                  RETURNING id, name, email, password_hash, created_at, updated_at;",
+                  RETURNING id, name, email, password_hash, created_at, updated_at, role;",
                 connection
             );
 
@@ -262,7 +262,8 @@ public class UserRepository : IUserRepository
             Email = reader.GetString(2),
             PasswordHash = reader.GetString(3),
             CreatedAt = reader.GetDateTime(4),
-            UpdatedAt = reader.GetDateTime(5)
+            UpdatedAt = reader.GetDateTime(5),
+            Role = reader.GetString(6)
         };
     }
 }

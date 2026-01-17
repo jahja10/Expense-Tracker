@@ -25,7 +25,7 @@ public class TransactionRepository : ITransactionRepository
 
 
 
-    public async Task<ErrorOr<List<Transaction>>> GetTransactionsAsync(CancellationToken cancellationToken)
+    public async Task<ErrorOr<List<Transaction>>> GetTransactionsAsync(int userId, CancellationToken cancellationToken)
     {
 
 
@@ -37,10 +37,14 @@ public class TransactionRepository : ITransactionRepository
 
             await using var command = new NpgsqlCommand(
 
-                "SELECT id, price, transaction_date, transaction_type, description, location, user_id, category_id, payment_method_id FROM transaction ORDER BY id",
+                @"SELECT id, price, transaction_date, transaction_type, description, location, user_id, category_id, payment_method_id FROM transaction 
+                WHERE user_id = @user_id
+                ORDER BY id",
                 connection
 
-            );            
+            );     
+
+            command.Parameters.AddWithValue("user_id", userId);       
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             var transactions = new List<Transaction>();
@@ -65,7 +69,7 @@ public class TransactionRepository : ITransactionRepository
 
     }
 
-     public async Task <ErrorOr<Transaction>> GetTransactionByIdAsync (int id, CancellationToken cancellationToken)
+     public async Task <ErrorOr<Transaction>> GetTransactionByIdAsync (int id, int userId, CancellationToken cancellationToken)
     {
         
 
@@ -77,7 +81,8 @@ public class TransactionRepository : ITransactionRepository
 
            await using var command = new NpgsqlCommand(
 
-                "SELECT  id, price, transaction_date, transaction_type, description, location, user_id, category_id, payment_method_id FROM transaction WHERE id = @id",
+                @"SELECT  id, price, transaction_date, transaction_type, description, location, user_id, category_id, payment_method_id 
+                FROM transaction WHERE id = @id AND user_id = @user_id",
                  connection
 
 
@@ -85,6 +90,7 @@ public class TransactionRepository : ITransactionRepository
             );
 
             command.Parameters.AddWithValue("id", id);
+            command.Parameters.AddWithValue("user_id", userId);
             
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -180,7 +186,7 @@ public class TransactionRepository : ITransactionRepository
                      category_id = @category_id,
                      payment_method_id = @payment_method_id
 
-                WHERE id = @id
+                WHERE id = @id AND user_id = @user_id
                 RETURNING id, price, transaction_date, transaction_type, description, location, user_id, category_id, payment_method_id;",
                 connection
 
@@ -190,6 +196,7 @@ public class TransactionRepository : ITransactionRepository
 
             command.Parameters.AddWithValue("price", (object?)transaction.Price ?? DBNull.Value);
             command.Parameters.AddWithValue("id", transaction.Id);
+            command.Parameters.AddWithValue("user_id", transaction.UserId);
             command.Parameters.AddWithValue("transaction_date", (object?)transaction.TransactionDate ?? DBNull.Value);
             command.Parameters.AddWithValue("transaction_type", transaction.TransactionType.ToString().ToLower());
             command.Parameters.AddWithValue("description", (object?)transaction.Description ?? DBNull.Value);
@@ -225,7 +232,7 @@ public class TransactionRepository : ITransactionRepository
     }
 
 
-     public async Task <ErrorOr<bool>> DeleteTransactionAsync(int id, CancellationToken cancellationToken)
+     public async Task <ErrorOr<bool>> DeleteTransactionAsync(int id, int userId, CancellationToken cancellationToken)
     {
         
         try {
@@ -235,7 +242,7 @@ public class TransactionRepository : ITransactionRepository
         await using var command = new NpgsqlCommand(
 
             @"DELETE FROM transaction 
-            WHERE id = @id
+            WHERE id = @id AND user_id = @user_id
             RETURNING  id;",
             connection
 
@@ -245,6 +252,7 @@ public class TransactionRepository : ITransactionRepository
 
 
         command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("user_id", userId);
 
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);

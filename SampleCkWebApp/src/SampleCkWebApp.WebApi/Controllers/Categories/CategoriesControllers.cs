@@ -4,9 +4,11 @@ using System.ComponentModel.DataAnnotations;
 using SampleCkWebApp.Categories;
 using SampleCkWebApp.Application.Categories.Interfaces.Application;
 using SampleCkWebApp.Application.Categories.Mappings;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SampleCkWebApp.WebApi.Controllers.Categories;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 [Produces("application/json")]
@@ -19,12 +21,14 @@ public class CategoriesController : ApiControllerBase
         _categoryService = categoryService;
     }
 
+  
     [HttpGet]
     [ProducesResponseType(typeof(GetCategoriesResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetCategories(CancellationToken cancellationToken)
-    {
-        var result = await _categoryService.GetCategoriesAsync(cancellationToken);
+    {   
+        var userId = CurrentUserId;
+        var result = await _categoryService.GetCategoriesAsync(userId,cancellationToken);
 
         return result.Match(
             categoriesResult => Ok(categoriesResult.ToResponse()),
@@ -39,8 +43,9 @@ public class CategoriesController : ApiControllerBase
     public async Task<IActionResult> GetCategoryById(
         [FromRoute, Required] int id,
         CancellationToken cancellationToken)
-    {
-        var result = await _categoryService.GetCategoryByIdAsync(id, cancellationToken);
+    {   
+        var userId = CurrentUserId;
+        var result = await _categoryService.GetCategoryByIdAsync(id,userId, cancellationToken);
 
         return result.Match(
             category => Ok(category.ToResponse()),
@@ -56,8 +61,9 @@ public class CategoriesController : ApiControllerBase
     public async Task<IActionResult> CreateCategory(
         [FromBody, Required] CreateCategoryRequest request,
         CancellationToken cancellationToken)
-    {
-        var result = await _categoryService.CreateCategoryAsync(request.Name, cancellationToken);
+    {   
+        var userId = CurrentUserId;
+        var result = await _categoryService.CreateCategoryAsync(request.Name, userId, cancellationToken);
 
         return result.Match(
             category => CreatedAtAction(
@@ -80,7 +86,8 @@ public class CategoriesController : ApiControllerBase
         [FromBody, Required] UpdateCategoryRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await _categoryService.UpdateCategoryAsync(id, request.Name, cancellationToken);
+        var userId = CurrentUserId;
+        var result = await _categoryService.UpdateCategoryAsync(id, request.Name, userId, cancellationToken);
 
         return result.Match(
             category => Ok(category.ToResponse()),
@@ -95,8 +102,9 @@ public class CategoriesController : ApiControllerBase
     public async Task<IActionResult> DeleteCategory(
         [FromRoute, Required] int id,
         CancellationToken cancellationToken)
-    {
-        var result = await _categoryService.DeleteCategoryAsync(id, cancellationToken);
+    {   
+        var userId = CurrentUserId;
+        var result = await _categoryService.DeleteCategoryAsync(id, userId, cancellationToken);
 
         return result.Match(
             _ => NoContent(),

@@ -24,7 +24,7 @@ public class CategoryRepository : ICategoryRepository
 
     }
 
-    public async Task<ErrorOr<List<Category>>> GetCategoriesAsync(CancellationToken cancellationToken)
+    public async Task<ErrorOr<List<Category>>> GetCategoriesAsync(int userId, CancellationToken cancellationToken)
     {
 
         try
@@ -35,13 +35,15 @@ public class CategoryRepository : ICategoryRepository
            await using var command = new NpgsqlCommand(
 
 
-                "SELECT id, name, created_at, updated_at FROM category ORDER BY id",
+                @"SELECT id, name, created_at, updated_at, user_id FROM category
+                WHERE user_id = @user_id 
+                ORDER BY id",
                 connection
 
 
             );
 
-
+            command.Parameters.AddWithValue("user_id", userId);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             var categories = new List<Category>();
 
@@ -67,7 +69,7 @@ public class CategoryRepository : ICategoryRepository
 
 
 
-    public async Task <ErrorOr<Category>> GetCategoryByIdAsync (int id, CancellationToken cancellationToken)
+    public async Task <ErrorOr<Category>> GetCategoryByIdAsync (int id, int userId, CancellationToken cancellationToken)
     {
         
 
@@ -79,7 +81,7 @@ public class CategoryRepository : ICategoryRepository
 
            await using var command = new NpgsqlCommand(
 
-                "SELECT id, name, created_at, updated_at FROM category WHERE id = @id",
+                @"SELECT id, name, created_at, updated_at, user_id FROM category WHERE id = @id and user_id = @user_id",
                  connection
 
 
@@ -87,7 +89,7 @@ public class CategoryRepository : ICategoryRepository
             );
 
             command.Parameters.AddWithValue("id", id);
-            
+            command.Parameters.AddWithValue("user_id", userId);
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
@@ -117,7 +119,7 @@ public class CategoryRepository : ICategoryRepository
 
     }    
 
-     public async Task<ErrorOr<Category>> GetCategoryByNameAsync (string name, CancellationToken cancellationToken)
+     public async Task<ErrorOr<Category>> GetCategoryByNameAsync (string name, int userId, CancellationToken cancellationToken)
     {
         
 
@@ -130,13 +132,15 @@ public class CategoryRepository : ICategoryRepository
             await using var command = new NpgsqlCommand(
 
 
-                @"SELECT id, name, created_at, updated_at FROM category WHERE LOWER(name) = LOWER(@name)",
+                @"SELECT id, name, created_at, updated_at, user_id FROM category WHERE LOWER(name) = LOWER(@name)
+                AND user_id = @user_id",
                 connection
 
 
             );
 
             command.Parameters.AddWithValue("name", name);
+            command.Parameters.AddWithValue("user_id", userId);
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             if(!await reader.ReadAsync(cancellationToken))
@@ -176,15 +180,16 @@ public class CategoryRepository : ICategoryRepository
 
         await using var command = new NpgsqlCommand(
 
-            @"INSERT INTO category(name, created_at, updated_at)
-            VALUES (@name, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            RETURNING id, name, created_at, updated_at", 
+            @"INSERT INTO category(name, created_at, updated_at, user_id)
+            VALUES (@name, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, @user_id)
+            RETURNING id, name, created_at, updated_at, user_id", 
             connection
 
         );
 
 
         command.Parameters.AddWithValue("name", category.Name);
+        command.Parameters.AddWithValue("user_id", category.UserId);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         
@@ -236,9 +241,9 @@ public class CategoryRepository : ICategoryRepository
                 @"UPDATE category
                 SET
                     name = @name,
-                    updated_at = @updatedAt
-                WHERE id = @id
-                RETURNING id, name, created_at, updated_at",
+                    updated_at = @updated_at
+                WHERE id = @id AND user_id = @user_id
+                RETURNING id, name, created_at, updated_at, user_id",
                 connection
 
 
@@ -247,6 +252,7 @@ public class CategoryRepository : ICategoryRepository
 
             command.Parameters.AddWithValue("name", category.Name);
             command.Parameters.AddWithValue("id", category.Id);
+            command.Parameters.AddWithValue("user_id", category.UserId);
             command.Parameters.AddWithValue("updated_at", category.UpdatedAt);
             
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -287,7 +293,7 @@ public class CategoryRepository : ICategoryRepository
 
 
 
-    public async Task <ErrorOr<bool>> DeleteCategoryAsync(int id, CancellationToken cancellationToken)
+    public async Task <ErrorOr<bool>> DeleteCategoryAsync(int id, int userId, CancellationToken cancellationToken)
     {
         
         try {
@@ -297,7 +303,7 @@ public class CategoryRepository : ICategoryRepository
         await using var command = new NpgsqlCommand(
 
             @"DELETE FROM category 
-            WHERE id = @id
+            WHERE id = @id AND user_id = @user_id
             RETURNING  id;",
             connection
 
@@ -307,6 +313,7 @@ public class CategoryRepository : ICategoryRepository
 
 
         command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("user_id", userId);
 
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -344,7 +351,8 @@ public class CategoryRepository : ICategoryRepository
             Id = reader.GetInt32(0),
             Name = reader.GetString(1),
             CreatedAt = reader.GetDateTime(2),
-            UpdatedAt = reader.GetDateTime(3)
+            UpdatedAt = reader.GetDateTime(3),
+            UserId = reader.GetInt32(4)
 
         };
 

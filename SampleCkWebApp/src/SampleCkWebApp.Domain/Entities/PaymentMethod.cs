@@ -15,6 +15,8 @@ public class PaymentMethod
 
     public DateTime UpdatedAt { get; set;}
 
+    public int UserId { get; set; }
+
 
 
 

@@ -1,3 +1,4 @@
+using System.Reflection;
 using ErrorOr;
 using Npgsql;
 using SampleCkWebApp.Application.PaymentMethods.Interfaces.Infrastructure;
@@ -24,7 +25,7 @@ public class PaymentMethodRepository : IPaymentMethodRepository
     }
 
 
-    public async Task<ErrorOr<List<PaymentMethod>>> GetPaymentMethodsAsync(CancellationToken cancellationToken)
+    public async Task<ErrorOr<List<PaymentMethod>>> GetPaymentMethodsAsync(int userId, CancellationToken cancellationToken)
     {
         
         try
@@ -35,12 +36,16 @@ public class PaymentMethodRepository : IPaymentMethodRepository
 
             await using var command = new NpgsqlCommand(
 
-                "SELECT id, method_name, created_at, updated_at FROM paymentmethod ORDER BY id",
+                @"SELECT id, method_name, created_at, updated_at, user_id FROM paymentmethod 
+                WHERE user_id = @user_id
+                ORDER BY id",
                 connection
 
 
 
             );
+
+            command.Parameters.AddWithValue("user_id", userId);
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             var paymentMethods = new List<PaymentMethod>();
@@ -72,7 +77,7 @@ public class PaymentMethodRepository : IPaymentMethodRepository
 
     }
 
-    public async Task<ErrorOr<PaymentMethod>> GetPaymentMethodByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PaymentMethod>> GetPaymentMethodByIdAsync(int id, int userId, CancellationToken cancellationToken)
     {
         
         try
@@ -84,12 +89,14 @@ public class PaymentMethodRepository : IPaymentMethodRepository
 
             await using var command = new NpgsqlCommand(
 
-                @"SELECT id, method_name, created_at, updated_at FROM paymentmethod WHERE id = @id",
+                @"SELECT id, method_name, created_at, updated_at, user_id FROM paymentmethod 
+                WHERE id = @id AND user_id = @user_id",
                 connection
 
             );
 
             command.Parameters.AddWithValue("id", id);
+            command.Parameters.AddWithValue("user_id", userId);
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
@@ -119,7 +126,7 @@ public class PaymentMethodRepository : IPaymentMethodRepository
     }
 
 
-    public async Task<ErrorOr<PaymentMethod>> GetPaymentMethodByNameAsync (string name, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PaymentMethod>> GetPaymentMethodByNameAsync (string name, int userId, CancellationToken cancellationToken)
     {
         
 
@@ -132,13 +139,15 @@ public class PaymentMethodRepository : IPaymentMethodRepository
             await using var command = new NpgsqlCommand(
 
 
-                @"SELECT id, method_name, created_at, updated_at FROM paymentmethod WHERE LOWER(method_name) = LOWER(@method_name)",
+                @"SELECT id, method_name, created_at, updated_at, user_id 
+                FROM paymentmethod WHERE LOWER(method_name) = LOWER(@method_name) AND user_id = @user_id",
                 connection
 
 
             );
 
             command.Parameters.AddWithValue("method_name", name);
+            command.Parameters.AddWithValue("user_id", userId);
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             if(!await reader.ReadAsync(cancellationToken))
@@ -177,14 +186,15 @@ public class PaymentMethodRepository : IPaymentMethodRepository
 
            await using var command = new NpgsqlCommand(
 
-            @"INSERT INTO paymentmethod(method_name, created_at, updated_at)
-            VALUES(@method_name, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            RETURNING id, method_name, created_at, updated_at",
+            @"INSERT INTO paymentmethod(method_name, created_at, updated_at, user_id)
+            VALUES(@method_name, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, @user_id)
+            RETURNING id, method_name, created_at, updated_at, user_id",
             connection
 
            );     
 
             command.Parameters.AddWithValue("method_name", paymentMethod.Name);
+            command.Parameters.AddWithValue("user_id", paymentMethod.UserId);
 
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -233,9 +243,9 @@ public class PaymentMethodRepository : IPaymentMethodRepository
                 @"UPDATE paymentmethod
                 SET
                     method_name = @method_name,
-                    updated_at = @updated_at
-                WHERE id = @id
-                RETURNING id, method_name, created_at, updated_at",
+                    updated_at = @updated_at,
+                WHERE id = @id AND user_id = @user_id
+                RETURNING id, method_name, created_at, updated_at, user_id",
                 connection
                 
 
@@ -243,6 +253,7 @@ public class PaymentMethodRepository : IPaymentMethodRepository
 
             command.Parameters.AddWithValue("method_name", paymentMethod.Name);
             command.Parameters.AddWithValue("id", paymentMethod.Id);
+            command.Parameters.AddWithValue("user_id", paymentMethod.UserId);
             command.Parameters.AddWithValue("updated_at", paymentMethod.UpdatedAt);
 
 
@@ -279,7 +290,7 @@ public class PaymentMethodRepository : IPaymentMethodRepository
     }
 
 
-    public async Task<ErrorOr<bool>> DeletePaymentMethodAsync (int id, CancellationToken cancellationToken)
+    public async Task<ErrorOr<bool>> DeletePaymentMethodAsync (int id,int userId, CancellationToken cancellationToken)
     {
         
         try
@@ -290,14 +301,16 @@ public class PaymentMethodRepository : IPaymentMethodRepository
 
             await using var command = new NpgsqlCommand(
 
-                @"DELETE FROM paymentmethod WHERE id = @id
-                RETURNING id;",
+                @"DELETE FROM paymentmethod
+                WHERE id = @id AND user_id = @user_id
+                RETURNING id, user_id;",
                 connection
 
 
             );
 
             command.Parameters.AddWithValue("id", id);
+            command.Parameters.AddWithValue("user_id", userId);
 
 
              await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -333,7 +346,8 @@ public class PaymentMethodRepository : IPaymentMethodRepository
             Id = reader.GetInt32(0),
             Name = reader.GetString(1),
             CreatedAt = reader.GetDateTime(2),
-            UpdatedAt = reader.GetDateTime(3)
+            UpdatedAt = reader.GetDateTime(3),
+            UserId = reader.GetInt32(4)
 
 
         };

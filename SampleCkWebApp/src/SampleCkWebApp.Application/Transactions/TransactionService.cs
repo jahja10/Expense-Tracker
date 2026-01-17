@@ -36,11 +36,11 @@ public class TransactionService : ITransactionService
 
    
 
-    public async Task<ErrorOr<GetTransactionsResult>> GetTransactionsAsync(CancellationToken cancellationToken)
+    public async Task<ErrorOr<GetTransactionsResult>> GetTransactionsAsync(int userId, CancellationToken cancellationToken)
     {
         
 
-        var transactionsResult = await _transactionRepository.GetTransactionsAsync(cancellationToken);
+        var transactionsResult = await _transactionRepository.GetTransactionsAsync(userId, cancellationToken);
         if(transactionsResult.IsError)
         {
             
@@ -58,10 +58,10 @@ public class TransactionService : ITransactionService
 
     }
 
-    public async Task<ErrorOr<Transaction>> GetTransactionByIdAsync (int id, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Transaction>> GetTransactionByIdAsync (int id, int userId, CancellationToken cancellationToken)
     {
         
-        var transactionResult = await _transactionRepository.GetTransactionByIdAsync(id, cancellationToken);
+        var transactionResult = await _transactionRepository.GetTransactionByIdAsync(id, userId, cancellationToken);
 
         if(transactionResult.IsError)
         {
@@ -80,9 +80,9 @@ public class TransactionService : ITransactionService
     {
         var userResult = await _userRepository.GetUserByIdAsync(userId, cancellationToken);
 
-        var categoryResult  = await _categoryRepository.GetCategoryByIdAsync(categoryId, cancellationToken);
+        var categoryResult  = await _categoryRepository.GetCategoryByIdAsync(categoryId, userId, cancellationToken);
 
-        var paymentMethodResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(paymentMethodId, cancellationToken);
+        var paymentMethodResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(paymentMethodId, userId, cancellationToken);
 
         if (userResult.IsError)
             {
@@ -131,13 +131,13 @@ public class TransactionService : ITransactionService
 
     }
 
-    public async Task <ErrorOr<Transaction>> UpdateTransactionAsync(int id, decimal? price, DateOnly? transactionDate,
+    public async Task <ErrorOr<Transaction>> UpdateTransactionAsync(int id, int userId, decimal? price, DateOnly? transactionDate,
     TransactionType? transactionType, string? description, string? location, int? categoryId, int? paymentMethodId,
     CancellationToken cancellationToken)
     {
 
         
-        var existing = await _transactionRepository.GetTransactionByIdAsync(id, cancellationToken);
+        var existing = await _transactionRepository.GetTransactionByIdAsync(id, userId, cancellationToken);
         if (existing.IsError)
             return existing.Errors;
 
@@ -159,13 +159,13 @@ public class TransactionService : ITransactionService
 
     if (categoryId.HasValue)
         {
-            var categoryResult = await _categoryRepository.GetCategoryByIdAsync(categoryId.Value, cancellationToken);
+            var categoryResult = await _categoryRepository.GetCategoryByIdAsync(categoryId.Value, userId, cancellationToken);
             if (categoryResult.IsError) return CategoryErrors.NotFound;
         }
 
     if (paymentMethodId.HasValue)
         {   
-            var paymentResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(paymentMethodId.Value, cancellationToken);
+            var paymentResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(paymentMethodId.Value, userId, cancellationToken);
             if (paymentResult.IsError) return PaymentMethodErrors.NotFound;
         }
 
@@ -191,12 +191,17 @@ public class TransactionService : ITransactionService
     }
 
 
-    public async Task<ErrorOr<bool>> DeleteTransactionAsync(int id, CancellationToken cancellationToken)
+    public async Task<ErrorOr<bool>> DeleteTransactionAsync(int id, int userId, CancellationToken cancellationToken)
     {
         
+         var existing = await _transactionRepository.GetTransactionByIdAsync(id, userId, cancellationToken);
+        if (existing.IsError)
+        {
+            return existing.Errors;
 
-        var deleteTransaction = await _transactionRepository.DeleteTransactionAsync(id, cancellationToken);
-        return deleteTransaction;
+        } 
+
+        return await _transactionRepository.DeleteTransactionAsync(id, userId, cancellationToken);
 
 
 

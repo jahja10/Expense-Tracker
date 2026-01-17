@@ -26,7 +26,7 @@ public class RecurringTransactionRepository : IRecurringTransactionRepository
 
 
 
-    public async Task<ErrorOr<List<RecurringTransaction>>> GetRecurringTransactionsAsync(CancellationToken cancellationToken)
+    public async Task<ErrorOr<List<RecurringTransaction>>> GetRecurringTransactionsAsync(int userId, CancellationToken cancellationToken)
     {
 
 
@@ -38,10 +38,15 @@ public class RecurringTransactionRepository : IRecurringTransactionRepository
 
             await using var command = new NpgsqlCommand(
 
-                "SELECT id, name, frequency_of_transaction, next_run_date, user_id, category_id, payment_method_id FROM recurring_transaction ORDER BY id",
+                @"SELECT id, name, frequency_of_transaction, next_run_date, user_id, category_id, payment_method_id 
+                FROM recurring_transaction 
+                WHERE user_id = @user_id
+                ORDER BY id",
                 connection
 
             );            
+
+            command.Parameters.AddWithValue("user_id", userId);
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             var recurringTransactions = new List<RecurringTransaction>();
@@ -66,7 +71,7 @@ public class RecurringTransactionRepository : IRecurringTransactionRepository
 
     }
 
-    public async Task <ErrorOr<RecurringTransaction>> GetRecurringTransactionByIdAsync (int id, CancellationToken cancellationToken)
+    public async Task <ErrorOr<RecurringTransaction>> GetRecurringTransactionByIdAsync (int id, int userId, CancellationToken cancellationToken)
     {
         
 
@@ -78,14 +83,17 @@ public class RecurringTransactionRepository : IRecurringTransactionRepository
 
            await using var command = new NpgsqlCommand(
 
-                "SELECT id, name, frequency_of_transaction, next_run_date, user_id, category_id, payment_method_id FROM recurring_transaction WHERE id = @id",
-                 connection
+                @"SELECT id, name, frequency_of_transaction, next_run_date, user_id, category_id, payment_method_id 
+                FROM recurring_transaction 
+                WHERE id = @id AND user_id = @user_id",
+                connection
 
 
 
             );
 
             command.Parameters.AddWithValue("id", id);
+            command.Parameters.AddWithValue("user_id", userId);
             
 
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -178,7 +186,7 @@ public class RecurringTransactionRepository : IRecurringTransactionRepository
                      category_id = @category_id,
                      payment_method_id = @payment_method_id
 
-                WHERE id = @id
+                WHERE id = @id AND user_id = @user_id
                 RETURNING id, name, frequency_of_transaction, next_run_date, user_id, category_id, payment_method_id;",
                 connection
 
@@ -188,6 +196,7 @@ public class RecurringTransactionRepository : IRecurringTransactionRepository
 
             command.Parameters.AddWithValue("name", recurringTransaction.Name);
             command.Parameters.AddWithValue("id", recurringTransaction.Id);
+            command.Parameters.AddWithValue("user_id", recurringTransaction.UserId);
             command.Parameters.AddWithValue("frequency_of_transaction", recurringTransaction.FrequencyOfTransaction.ToString().ToLowerInvariant());
             command.Parameters.AddWithValue("next_run_date", (object?)recurringTransaction.NextRunDate ?? DBNull.Value);
             command.Parameters.AddWithValue("category_id", recurringTransaction.CategoryId);
@@ -221,7 +230,7 @@ public class RecurringTransactionRepository : IRecurringTransactionRepository
     }
 
 
-     public async Task <ErrorOr<bool>> DeleteRecurringTransactionAsync(int id, CancellationToken cancellationToken)
+     public async Task <ErrorOr<bool>> DeleteRecurringTransactionAsync(int id, int userId, CancellationToken cancellationToken)
     {
         
         try {
@@ -231,8 +240,8 @@ public class RecurringTransactionRepository : IRecurringTransactionRepository
         await using var command = new NpgsqlCommand(
 
             @"DELETE FROM recurring_transaction 
-            WHERE id = @id
-            RETURNING  id;",
+            WHERE id = @id AND user_id = @user_id
+            RETURNING  id, user_id;",
             connection
 
 
@@ -241,6 +250,7 @@ public class RecurringTransactionRepository : IRecurringTransactionRepository
 
 
         command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("user_id", userId);
 
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);

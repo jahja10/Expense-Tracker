@@ -36,11 +36,11 @@ public class RecurringTransactionService : IRecurringTransactionService
     }
 
 
-    public async Task<ErrorOr<GetRecurringTransactionsResult>> GetRecurringTransactionsAsync(CancellationToken cancellationToken)
+    public async Task<ErrorOr<GetRecurringTransactionsResult>> GetRecurringTransactionsAsync(int userId, CancellationToken cancellationToken)
     {
         
 
-        var recurringTransactionsResult = await _recurringTransactionRepository.GetRecurringTransactionsAsync(cancellationToken);
+        var recurringTransactionsResult = await _recurringTransactionRepository.GetRecurringTransactionsAsync(userId, cancellationToken);
         if(recurringTransactionsResult.IsError)
         {
             
@@ -58,10 +58,10 @@ public class RecurringTransactionService : IRecurringTransactionService
 
     }
 
-     public async Task<ErrorOr<RecurringTransaction>> GetRecurringTransactionByIdAsync (int id, CancellationToken cancellationToken)
+     public async Task<ErrorOr<RecurringTransaction>> GetRecurringTransactionByIdAsync (int id, int userId, CancellationToken cancellationToken)
     {
         
-        var recurringTransactionResult = await _recurringTransactionRepository.GetRecurringTransactionByIdAsync(id, cancellationToken);
+        var recurringTransactionResult = await _recurringTransactionRepository.GetRecurringTransactionByIdAsync(id, userId, cancellationToken);
 
         if(recurringTransactionResult.IsError)
         {
@@ -81,9 +81,9 @@ public class RecurringTransactionService : IRecurringTransactionService
 
         var userResult = await _userRepository.GetUserByIdAsync(userId, cancellationToken);
 
-        var categoryResult  = await _categoryRepository.GetCategoryByIdAsync(categoryId, cancellationToken);
+        var categoryResult  = await _categoryRepository.GetCategoryByIdAsync(categoryId, userId, cancellationToken);
 
-        var paymentMethodResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(paymentMethodId, cancellationToken);
+        var paymentMethodResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(paymentMethodId, userId, cancellationToken);
 
         if (userResult.IsError)
             {
@@ -129,12 +129,12 @@ public class RecurringTransactionService : IRecurringTransactionService
 
     }
 
-    public async Task<ErrorOr<RecurringTransaction>> UpdateRecurringTransactionAsync(int id, string? name, FrequencyOfTransaction? 
+    public async Task<ErrorOr<RecurringTransaction>> UpdateRecurringTransactionAsync(int id, int userId, string? name, FrequencyOfTransaction? 
     frequencyOfTransaction, DateOnly? nextRunDate, int? categoryId, 
     int? paymentMethodId, CancellationToken cancellationToken)
     {
         
-        var existing = await _recurringTransactionRepository.GetRecurringTransactionByIdAsync(id, cancellationToken);
+        var existing = await _recurringTransactionRepository.GetRecurringTransactionByIdAsync(id, userId, cancellationToken);
         if (existing.IsError)
             return existing.Errors;
 
@@ -155,13 +155,13 @@ public class RecurringTransactionService : IRecurringTransactionService
 
     if (categoryId.HasValue)
         {
-            var categoryResult = await _categoryRepository.GetCategoryByIdAsync(categoryId.Value, cancellationToken);
+            var categoryResult = await _categoryRepository.GetCategoryByIdAsync(categoryId.Value, old.UserId, cancellationToken);
             if (categoryResult.IsError) return CategoryErrors.NotFound;
         }
 
     if (paymentMethodId.HasValue)
         {   
-            var paymentResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(paymentMethodId.Value, cancellationToken);
+            var paymentResult = await _paymentMethodRepository.GetPaymentMethodByIdAsync(paymentMethodId.Value, old.UserId, cancellationToken);
             if (paymentResult.IsError) return PaymentMethodErrors.NotFound;
         }
 
@@ -183,11 +183,11 @@ public class RecurringTransactionService : IRecurringTransactionService
     }
 
 
-    public async Task<ErrorOr<bool>> DeleteRecurringTransactionAsync(int id, CancellationToken cancellationToken)
+    public async Task<ErrorOr<bool>> DeleteRecurringTransactionAsync(int id, int userId, CancellationToken cancellationToken)
     {
         
 
-        var deleteRecurringTransaction = await _recurringTransactionRepository.DeleteRecurringTransactionAsync(id, cancellationToken);
+        var deleteRecurringTransaction = await _recurringTransactionRepository.DeleteRecurringTransactionAsync(id, userId, cancellationToken);
         return deleteRecurringTransaction;
 
 

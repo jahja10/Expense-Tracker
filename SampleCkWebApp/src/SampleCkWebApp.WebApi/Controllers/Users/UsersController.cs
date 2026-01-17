@@ -4,9 +4,12 @@ using System.ComponentModel.DataAnnotations;
 using SampleCkWebApp.Users;
 using SampleCkWebApp.Application.Users.Interfaces.Application;
 using SampleCkWebApp.Application.Users.Mappings;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace SampleCkWebApp.WebApi.Controllers.Users;
 
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("[controller]")]
 [Produces("application/json")]
@@ -18,6 +21,8 @@ public class UsersController : ApiControllerBase
     {
         _userService = userService;
     }
+
+
 
     // ------------------------------------------------------------------------
     // GET /Users

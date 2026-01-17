@@ -8,8 +8,6 @@ public class CreateRecurringTransactionRequest
 
     public DateOnly? NextRunDate { get; set; }
 
-    public int UserId { get; set; }
-
     public int CategoryId { get; set; }
 
     public int PaymentMethodId { get; set; }

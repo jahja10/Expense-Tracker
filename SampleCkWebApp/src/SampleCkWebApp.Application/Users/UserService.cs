@@ -5,6 +5,7 @@ using SampleCkWebApp.Application.Users.Data;
 using SampleCkWebApp.Application.Users.Interfaces.Application;
 using SampleCkWebApp.Application.Users.Interfaces.Infrastructure;
 using System.Runtime.CompilerServices;
+using SampleCkWebApp.Application.Users.Interfaces;
 
 namespace SampleCkWebApp.Application.Users;
 
@@ -14,11 +15,13 @@ public class UserService : IUserService
     
     private readonly IUserRepository _userRepository;
 
-    public UserService (IUserRepository userRepository)
+    private readonly IPasswordHasher _passwordHasher;
+
+    public UserService (IUserRepository userRepository, IPasswordHasher passwordHasher)
     {
         
         _userRepository = userRepository;
-
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<ErrorOr<GetUsersResult>> GetUsersAsync(CancellationToken cancellationToken)
@@ -76,7 +79,7 @@ public async Task <ErrorOr<User>> CreateUserAsync(string name, string email, str
             return UserErrors.DuplicateEmail;
         }
 
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+        var passwordHash = _passwordHasher.Hash(password);
 
         var user = new User
         {
@@ -135,7 +138,7 @@ public async Task <ErrorOr<User>> CreateUserAsync(string name, string email, str
 
         }
 
-            var passwordHash =  BCrypt.Net.BCrypt.HashPassword(password);
+            var passwordHash =  _passwordHasher.Hash(password);
 
             var updateUser = new User
             {

@@ -3,9 +3,11 @@ using System.ComponentModel.DataAnnotations;
 using SampleCkWebApp.PaymentMethods;
 using SampleCkWebApp.Application.PaymentMethods.Interfaces.Application;
 using SampleCkWebApp.Application.PaymentMethods.Mappings;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SampleCkWebApp.WebApi.Controllers.PaymentMethods;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 [Produces("application/json")]
@@ -22,8 +24,9 @@ public class PaymentMethodsController : ApiControllerBase
     [ProducesResponseType(typeof(GetPaymentMethodsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPaymentMethods(CancellationToken cancellationToken)
-    {
-        var result = await _paymentmethodService.GetPaymentMethodsAsync(cancellationToken);
+    {   
+        var userId = CurrentUserId;
+        var result = await _paymentmethodService.GetPaymentMethodsAsync(userId, cancellationToken);
 
         return result.Match(
             paymentMethodsResult => Ok(paymentMethodsResult.ToResponse()),
@@ -36,8 +39,9 @@ public class PaymentMethodsController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPaymentMethodById([FromRoute, Required] int id, CancellationToken cancellationToken)
-    {
-        var result = await _paymentmethodService.GetPaymentMethodByIdAsync(id, cancellationToken);
+    {   
+        var userId = CurrentUserId;
+        var result = await _paymentmethodService.GetPaymentMethodByIdAsync(id, userId, cancellationToken);
 
         return result.Match(
             paymentMethod => Ok(paymentMethod.ToResponse()),
@@ -51,8 +55,9 @@ public class PaymentMethodsController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreatePaymentMethod([FromBody, Required] CreatePaymentMethodRequest request, CancellationToken cancellationToken)
-    {
-        var result = await _paymentmethodService.CreatePaymentMethodAsync(request.Name, cancellationToken);
+    {   
+        var userId = CurrentUserId;
+        var result = await _paymentmethodService.CreatePaymentMethodAsync(request.Name, userId, cancellationToken);
 
         return result.Match(
             paymentMethod => CreatedAtAction(
@@ -71,8 +76,9 @@ public class PaymentMethodsController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdatePaymentMethod([FromRoute, Required] int id, [FromBody, Required] UpdatePaymentMethodRequest request, CancellationToken cancellationToken)
-    {
-        var result = await _paymentmethodService.UpdatePaymentMethodAsync(id, request.Name, cancellationToken);
+    {   
+        var userId = CurrentUserId;
+        var result = await _paymentmethodService.UpdatePaymentMethodAsync(id,  request.Name, userId, cancellationToken);
 
         return result.Match(
             paymentMethod => Ok(paymentMethod.ToResponse()),
@@ -85,8 +91,9 @@ public class PaymentMethodsController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeletePaymentMethod([FromRoute, Required] int id, CancellationToken cancellationToken)
-    {
-        var result = await _paymentmethodService.DeletePaymentMethodAsync(id, cancellationToken);
+    {   
+        var userId = CurrentUserId;
+        var result = await _paymentmethodService.DeletePaymentMethodAsync(id,userId, cancellationToken);
 
         return result.Match(
             _ => NoContent(),

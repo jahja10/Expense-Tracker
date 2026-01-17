@@ -3,6 +3,8 @@ using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.Security.Claims;
+
 
 namespace SampleCkWebApp.WebApi.Controllers;
 
@@ -13,6 +15,20 @@ public abstract class ApiControllerBase : ControllerBase
     {
         PropertyNameCaseInsensitive = true,
     };  
+
+    protected int CurrentUserId
+{
+    get
+    {
+        var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(id))
+            throw new InvalidOperationException("UserId claim not found in token.");
+
+        return int.Parse(id);
+    }
+}
+
     
     protected IActionResult ProblemCode(int statusCode)
     {

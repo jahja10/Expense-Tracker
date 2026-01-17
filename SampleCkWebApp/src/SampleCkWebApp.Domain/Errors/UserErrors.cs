@@ -12,6 +12,12 @@ public static class UserErrors
     
     public static Error InvalidEmail =>
         Error.Validation($"{nameof(UserErrors)}.{nameof(InvalidEmail)}", "The provided email is invalid.");
+
+         public static Error EmailNotFound =>
+         Error.Validation($"{nameof(UserErrors)}.{nameof(EmailNotFound)}", "Email not found.");
+
+         public static Error InvalidCredentials =>
+         Error.Validation($"{nameof(UserErrors)}.{nameof(InvalidCredentials)}", "Invalid Credentials.");
     
     public static Error InvalidName =>
         Error.Validation($"{nameof(UserErrors)}.{nameof(InvalidName)}", "Name must be between 1 and 100 characters.");
