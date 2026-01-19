@@ -24,16 +24,13 @@ public class UsersController : ApiControllerBase
 
 
 
-    // ------------------------------------------------------------------------
-    // GET /Users
-    // ------------------------------------------------------------------------
+
     [HttpGet]
     [ProducesResponseType(typeof(GetUsersResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetUsers(CancellationToken cancellationToken)
     {
-        // Pretpostavka: u service-u se metoda zove GetUsersAsync.
-        // Ako se kod tebe zove drugačije (npr. GetUserAsync), uskladi ime.
+      
         var result = await _userService.GetUsersAsync(cancellationToken);
 
         return result.Match(
@@ -42,9 +39,7 @@ public class UsersController : ApiControllerBase
         );
     }
 
-    // ------------------------------------------------------------------------
-    // GET /Users/{id}
-    // ------------------------------------------------------------------------
+ 
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -61,9 +56,7 @@ public class UsersController : ApiControllerBase
         );
     }
 
-    // ------------------------------------------------------------------------
-    // POST /Users
-    // ------------------------------------------------------------------------
+    
     [HttpPost]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

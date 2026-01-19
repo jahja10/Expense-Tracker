@@ -18,7 +18,7 @@ public static ErrorOr<Success> ValidateCreatePaymentMethodRequest(string name)
     }
 
     if (Regex.IsMatch(name, @"\d"))
-            return CategoryErrors.NameContainsNumbers;
+            return PaymentMethodErrors.NameContainsNumbers;
 
 
     return Result.Success;
