@@ -31,10 +31,9 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         var claims = new List<Claim>
         {
             
-            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new (JwtRegisteredClaimNames.Email, email),
-            new(ClaimTypes.NameIdentifier, userId.ToString()),
-            new(ClaimTypes.Role, role),
+        new(ClaimTypes.NameIdentifier, userId.ToString()), 
+        new(ClaimTypes.Role, role),
+        new(JwtRegisteredClaimNames.Email, email),
 
         };
 

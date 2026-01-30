@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace SampleCkWebApp.WebApi.Controllers.Categories;
 
-[Authorize]
+[Authorize(Roles = "User,Admin")]
 [ApiController]
 [Route("[controller]")]
 [Produces("application/json")]

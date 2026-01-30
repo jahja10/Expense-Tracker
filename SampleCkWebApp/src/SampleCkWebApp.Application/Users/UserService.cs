@@ -157,10 +157,40 @@ public async Task <ErrorOr<User>> CreateUserAsync(string name, string email, str
            return updateResult;
 
 
-        
 
+    }
+
+    public async Task <ErrorOr<bool>> ChangeMyPasswordAsync(int currentUserId,string currentPassword,string newPassword,
+    string confirmNewPassword,CancellationToken cancellationToken)
+    {
         
+        if(string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword)
+        || string.IsNullOrWhiteSpace(confirmNewPassword))
+        {
             
+            return Error.Validation("User.Passord.Invalid", "Password fields are required");
+
+        }
+
+        if (newPassword != confirmNewPassword)
+        return UserErrors.PasswordsDoNotMatch;
+
+        if (newPassword.Length < 6)
+            return Error.Validation("User.Password.TooShort", "New password must be at least 6 characters long.");
+
+        var userResult = await _userRepository.GetUserByIdAsync(currentUserId, cancellationToken);
+        if (userResult.IsError)
+            return userResult.Errors;
+
+        var user = userResult.Value;
+
+        if (!_passwordHasher.Verify(currentPassword, user.PasswordHash))
+            return UserErrors.InvalidCurrentPassword;
+
+        var newHash = _passwordHasher.Hash(newPassword);
+
+        var updateResult = await _userRepository.UpdatePasswordHashAsync(currentUserId, newHash, cancellationToken);
+        return updateResult;
 
 
     }

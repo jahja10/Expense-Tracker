@@ -16,6 +16,8 @@ public class UserResponse
 
     public DateTime UpdatedAt { get; set; }
 
+    public bool IsActive { get; set; }
+
 
 
 

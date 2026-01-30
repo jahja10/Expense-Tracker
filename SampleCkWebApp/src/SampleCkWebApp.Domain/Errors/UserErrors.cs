@@ -21,6 +21,12 @@ public static class UserErrors
     
     public static Error InvalidName =>
         Error.Validation($"{nameof(UserErrors)}.{nameof(InvalidName)}", "Name must be between 1 and 100 characters.");
+
+        public static Error PasswordsDoNotMatch =>
+        Error.Validation("User.PasswordsDoNotMatch", "New password and confirmation do not match.");
+
+        public static Error InvalidCurrentPassword =>
+        Error.Unauthorized("User.InvalidCurrentPassword", "Invalid current password.");
     
     public static Error InvalidPassword =>
         Error.Validation($"{nameof(UserErrors)}.{nameof(InvalidPassword)}", "Password is required and must be at least 6 characters long.");

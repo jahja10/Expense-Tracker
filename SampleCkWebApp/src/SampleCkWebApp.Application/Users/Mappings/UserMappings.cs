@@ -27,7 +27,8 @@ public static class UserMappings
             Name = user.Name,
             Email = user.Email,
             CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt
+            UpdatedAt = user.UpdatedAt,
+            IsActive = user.IsActive
         };
     }
 }

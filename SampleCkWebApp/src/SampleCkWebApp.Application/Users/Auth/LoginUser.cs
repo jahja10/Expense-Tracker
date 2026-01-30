@@ -32,11 +32,17 @@ public sealed class LogInUser
 
         var user = userResult.Value;
 
+        if (!user.IsActive)
+        return Error.Unauthorized("User.Deactivated", "Account is deactivated.");
+
         if (!_passwordHasher.Verify(password, user.PasswordHash))
         {
            
             return Error.Unauthorized(description: "Invalid email or password");
         }
+
+        
+
 
         return user;
     }

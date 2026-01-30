@@ -25,7 +25,7 @@ public class UserRepository : IUserRepository
             await connection.OpenAsync(cancellationToken);
 
             await using var command = new NpgsqlCommand(
-                "SELECT id, name, email, password_hash, created_at, updated_at, role FROM users ORDER BY id",
+                "SELECT id, name, email, password_hash, created_at, updated_at, role, is_active FROM users ORDER BY id",
                 connection
             );
 
@@ -53,7 +53,7 @@ public class UserRepository : IUserRepository
             await connection.OpenAsync(cancellationToken);
 
             await using var command = new NpgsqlCommand(
-                "SELECT id, name, email, password_hash, created_at, updated_at, role FROM users WHERE id = @id",
+                "SELECT id, name, email, password_hash, created_at, updated_at, role, is_active FROM users WHERE id = @id",
                 connection
             );
 
@@ -82,7 +82,7 @@ public class UserRepository : IUserRepository
             await connection.OpenAsync(cancellationToken);
 
             await using var command = new NpgsqlCommand(
-                "SELECT id, name, email, password_hash, created_at, updated_at, role FROM users WHERE email = @email",
+                "SELECT id, name, email, password_hash, created_at, updated_at, role, is_active FROM users WHERE email = @email",
                 connection
             );
 
@@ -113,7 +113,7 @@ public class UserRepository : IUserRepository
             await using var command = new NpgsqlCommand(
                 @"INSERT INTO users(name, email, password_hash, created_at, updated_at)
                   VALUES(@name, @email, @password_hash, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                  RETURNING id, name, email, password_hash, created_at, updated_at, role;",
+                  RETURNING id, name, email, password_hash, created_at, updated_at, role, is_active;",
                 connection
             );
 
@@ -161,7 +161,7 @@ public class UserRepository : IUserRepository
                 password_hash = @passwordHash,
                 updated_at = @updatedAt
                 WHERE id = @id
-                RETURNING id, name, email, password_hash, created_at, updated_at",
+                RETURNING id, name, email, password_hash, created_at, updated_at, role, is_active",
                 connection
                 
             );
@@ -204,6 +204,80 @@ public class UserRepository : IUserRepository
 
 
     } 
+
+    public async Task <ErrorOr<bool>> UpdatePasswordHashAsync(int id, string newPasswordHash, CancellationToken cancellationToken)
+    {
+        
+        try
+        {
+            
+            await using var connection = new NpgsqlConnection(_options.ConnectionString);
+            await connection.OpenAsync(cancellationToken);
+
+            await using var command = new NpgsqlCommand(
+
+                @"UPDATE users
+              SET password_hash = @password_hash,
+                updated_at = CURRENT_TIMESTAMP
+              WHERE id = @id
+              RETURNING id;",
+            connection
+
+
+            );
+
+            command.Parameters.AddWithValue("id", id);
+            command.Parameters.AddWithValue("password_hash", newPasswordHash);
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+            if(!await reader.ReadAsync(cancellationToken))
+            {
+                
+                return UserErrors.NotFound;
+            }
+
+            return true;
+        } catch(Exception ex)
+        {
+            
+            return Error.Failure("DataBase.Error", $"Failed to update password: {ex.Message}");
+
+        }
+
+
+    }
+
+
+    public async Task<ErrorOr<bool>> DeactivateUserAsync(int id, CancellationToken cancellationToken)
+{
+    try
+    {
+        await using var connection = new NpgsqlConnection(_options.ConnectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = new NpgsqlCommand(
+            @"UPDATE users
+              SET is_active = FALSE,
+                  updated_at = CURRENT_TIMESTAMP
+              WHERE id = @id AND is_active = TRUE
+              RETURNING id;",
+            connection
+        );
+
+        command.Parameters.AddWithValue("id", id);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+            return UserErrors.NotFound;
+
+        return true;
+    }
+    catch (Exception ex)
+    {
+        return Error.Failure("Database.Error", $"Failed to deactivate user: {ex.Message}");
+    }
+}
 
 
     public async Task<ErrorOr<bool>> DeleteUserAsync (int id, CancellationToken cancellationToken)
@@ -263,7 +337,8 @@ public class UserRepository : IUserRepository
             PasswordHash = reader.GetString(3),
             CreatedAt = reader.GetDateTime(4),
             UpdatedAt = reader.GetDateTime(5),
-            Role = reader.GetString(6)
+            Role = reader.GetString(6),
+            IsActive = reader.GetBoolean(7)
         };
     }
 }

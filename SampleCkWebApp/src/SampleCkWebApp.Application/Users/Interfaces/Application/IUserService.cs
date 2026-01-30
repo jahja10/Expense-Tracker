@@ -16,6 +16,9 @@ public interface IUserService
 
     Task <ErrorOr<User>> UpdateUserAsync(int id, string name, string email, string password, CancellationToken cancellationToken); 
 
+    Task <ErrorOr<bool>> ChangeMyPasswordAsync(int currentUserId, string currentPassword, string newPassword,
+    string confirmNewPassword, CancellationToken cancellationToken);
+
     Task <ErrorOr<bool>> DeleteUserAsync(int id, CancellationToken cancellationToken);
 
     
