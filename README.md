@@ -39,7 +39,29 @@ PostgreSQL se pokreće u Docker kontejneru sa sljedećim parametrima:
 - Username: sampleuser
 - Password: samplepass
 
-Podaci se čuvaju u Docker volumenu (`postgres-data`) i ostaju sačuvani nakon gašenja kontejnera.
+## Autentifikacija i autorizacija (JWT)
+
+Aplikacija koristi JWT (JSON Web Token) za sigurnu autentifikaciju i autorizaciju korisnika.
+
+Funkcionalnosti
+
+- Prijava korisnika (login)
+
+- Generisanje JWT tokena nakon uspješne autentifikacije
+
+- Zaštita endpointa pomoću [Authorize] atributa
+
+- Role-based autorizacija (npr. Admin, User)
+
+- Svaki korisnik ima pristup isključivo vlastitim podacima (transakcije, kategorije, budžeti, itd.)
+
+- Administrator ima proširene privilegije nad sistemom
+
+## Korištenje JWT tokena
+
+Nakon prijave, API vraća JWT token koji je potrebno slati u svakom zaštićenom zahtjevu kroz HTTP header:
+
+Authorization: Bearer {jwt_token}
 
 ## Swagger dokumentacija
 
