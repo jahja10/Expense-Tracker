@@ -1,8 +1,8 @@
 # Expense Tracker API
 
-REST API aplikacija za upravljanje troškovima, budžetima, transakcijama i povezanim entitetima.
+REST API application for managing expenses, budgets, transactions, and related entities.
 
-## Tehnologije
+## Technologies
 
 - .NET 8
 - ASP.NET Core Web API
@@ -11,71 +11,82 @@ REST API aplikacija za upravljanje troškovima, budžetima, transakcijama i pove
 - Docker & Docker Compose
 - Swagger (OpenAPI)
 
-## Pokretanje aplikacije (Docker – preporučeno)
+## Application Startup (Docker – recommended)
 
-### Preduvjeti
+### Prerequisites
 - Docker
 - Docker Compose
 
 ### Start
 
-U folderu gdje se nalazi `docker-compose.yml` pokrenuti:
+In the folder containing `docker-compose.yml`, run:
 
 ```bash
 docker compose up --build
 ```
 
-Aplikacija će biti dostupna na:
+
+The application will be available at:
+
 - API: http://localhost:8080
+
 - Swagger UI: http://localhost:8080/swagger
 
-## Baza podataka
+## Database
 
-PostgreSQL se pokreće u Docker kontejneru sa sljedećim parametrima:
+PostgreSQL runs inside a Docker container with the following parameters:
 
 - Host: localhost
+
 - Port: 5433
+
 - Database: expense_tracker
+
 - Username: sampleuser
+
 - Password: samplepass
 
-## Autentifikacija i autorizacija (JWT)
+## Authentication and Authorization (JWT)
 
-Aplikacija koristi JWT (JSON Web Token) za sigurnu autentifikaciju i autorizaciju korisnika.
+The application uses JWT (JSON Web Token) for secure user authentication and authorization.
 
-Funkcionalnosti
+## Features
 
-- Prijava korisnika (login)
+- User login
 
-- Generisanje JWT tokena nakon uspješne autentifikacije
+- JWT token generation after successful authentication
 
-- Zaštita endpointa pomoću [Authorize] atributa
+- Endpoint protection using the [Authorize] attribute
 
-- Role-based autorizacija (npr. Admin, User)
+- Role-based authorization (e.g. Admin, User)
 
-- Svaki korisnik ima pristup isključivo vlastitim podacima (transakcije, kategorije, budžeti, itd.)
+- Each user has access only to their own data
+(transactions, categories, budgets, etc.)
 
-- Administrator ima proširene privilegije nad sistemom
+- Administrator has extended system privileges
 
-## Korištenje JWT tokena
+## Using the JWT Token
 
-Nakon prijave, API vraća JWT token koji je potrebno slati u svakom zaštićenom zahtjevu kroz HTTP header:
+After logging in, the API returns a JWT token which must be included in every protected request via the HTTP header:
 
 Authorization: Bearer {jwt_token}
 
-## Swagger dokumentacija
+## Swagger Documentation
 
-API je dokumentovan pomoću Swagger (OpenAPI).
-Swagger UI omogućava pregled svih endpointa, request/response modela i testiranje API-ja.
+The API is documented using Swagger (OpenAPI).
+Swagger UI allows inspection of all endpoints, request/response models, and API testing.
 
-Swagger je dostupan na:
+Swagger is available at:
 http://localhost:8080/swagger
 
-## Arhitektura aplikacije
+## Application Architecture
 
-Aplikacija je organizovana po slojevima:
+The application is organized into layers:
 
-- Domain – poslovni modeli i pravila
-- Application – poslovna logika i servisi
-- Infrastructure – pristup bazi i vanjskim servisima
-- WebApi – HTTP endpointi i ulazna tačka aplikacije
+- Domain – business models and rules
+
+- Application – business logic and services
+
+- Infrastructure – database access and external services
+
+- WebApi – HTTP endpoints and application entry point
