@@ -138,7 +138,7 @@ WebApi – HTTP endpoints and application entry point
 
 ---
 
-# 📘 Swagger Documentation
+#  Swagger Documentation
 
 Swagger UI is available at:
 
@@ -151,7 +151,7 @@ Swagger allows:
 
 ---
 
-# ⚠ Important Notes
+#  Important Notes
 
 - Unique email constraint is enforced at database level.
 - Passwords are securely hashed using BCrypt.
