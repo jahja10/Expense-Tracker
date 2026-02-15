@@ -38,7 +38,7 @@ The application will be available at:
 
 ---
 
-# 🗄 Database Configuration
+#  Database Configuration
 
 PostgreSQL runs inside a Docker container with the following configuration:
 
