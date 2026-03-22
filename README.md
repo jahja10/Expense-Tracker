@@ -1,4 +1,4 @@
-# Expense Tracker API
+# Expense Tracker
 
 REST API application for managing personal finances including expenses, transactions, budgets, recurring transactions, and user accounts.
 
@@ -49,6 +49,41 @@ PostgreSQL runs inside a Docker container with the following configuration:
 - Password: samplepass
 
 The connection string is automatically injected via environment variables.
+
+---
+
+## Frontend
+
+The frontend is built using:
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+
+### How to run frontend
+
+Navigate to the frontend folder:
+
+```bash
+cd frontend
+npm install
+npm run dev
+
+```
+The frontend will be available at:
+
+http://localhost:5173
+
+---
+
+## 🔗 Frontend & Backend Connection
+
+The frontend communicates with the backend API using HTTP requests.
+
+Make sure the backend is running before starting the frontend.
+
+API base URL is configured in the frontend using environment variables.
 
 ---
 
