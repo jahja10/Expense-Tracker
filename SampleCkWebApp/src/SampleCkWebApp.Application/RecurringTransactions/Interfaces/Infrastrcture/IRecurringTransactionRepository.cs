@@ -15,6 +15,8 @@ public interface IRecurringTransactionRepository
     Task<ErrorOr<RecurringTransaction>> CreateRecurringTransactionAsync
     (RecurringTransaction recurringTransaction, CancellationToken cancellationToken);
 
+    Task<ErrorOr<RecurringTransaction>> GetRecurringTransactionByNameAsync(string name, int userId, CancellationToken cancellationToken);
+
     Task<ErrorOr<RecurringTransaction>> UpdateRecurringTransactionAsync
     (RecurringTransaction recurringTransaction, CancellationToken cancellationToken);
 

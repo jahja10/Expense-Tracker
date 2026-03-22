@@ -6,9 +6,12 @@ public class UpdateRecurringTransactionRequest
 
     public FrequencyOfTransactionContract? FrequencyOfTransaction { get; set; }
 
-    public DateOnly? NextRunDate { get; set; }
-
     public int? CategoryId { get; set; }
 
     public int? PaymentMethodId { get; set; }
+
+    public decimal? Amount { get; set; }
+
+    public DateOnly? StartDate { get; set; }
+
 }

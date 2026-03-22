@@ -5,6 +5,7 @@ using SampleCkWebApp.Domain.Errors;
 using SampleCkWebApp.Domain.Enums;
 using SampleCkWebApp.Application.Transactions.Interfaces.Infrastructure;
 using SampleCkWebApp.Infrastructure.Common;
+using SampleCkWebApp.Contracts.Dashboard;
 
 
 namespace SampleCkWebApp.Infrastructure.Transactions;
@@ -276,6 +277,64 @@ public class TransactionRepository : ITransactionRepository
     }
 
 
+    public async Task<ErrorOr<List<DashboardTransactionsResponse>>> GetRecentTransactionsAsync( int userId, CancellationToken cancellationToken)
+{
+    try
+    {
+        await using var connection = new NpgsqlConnection(_options.ConnectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = new NpgsqlCommand(
+            @"
+            SELECT
+                t.price,
+                t.transaction_date,
+                t.transaction_type,
+                t.description,
+                t.location,
+                c.name AS category_name,
+                pm.method_name AS payment_method_name
+            FROM ""transaction"" t
+            JOIN category c ON t.category_id = c.id
+            JOIN paymentmethod pm ON t.payment_method_id = pm.id
+            WHERE t.user_id = @user_id
+            ORDER BY t.transaction_date DESC, t.id DESC
+            LIMIT 2;
+            ",
+            connection
+                );
+
+        command.Parameters.AddWithValue("user_id", userId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        var transactions = new List<DashboardTransactionsResponse>();
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            transactions.Add(new DashboardTransactionsResponse(
+            reader.IsDBNull(0) ? 0m : reader.GetDecimal(0),
+           reader.IsDBNull(1)
+           ? DateOnly.FromDateTime(DateTime.Today)
+           : DateOnly.FromDateTime(reader.GetDateTime(1)),
+            reader.GetString(2),
+            reader.IsDBNull(3) ? null : reader.GetString(3),
+            reader.IsDBNull(4) ? null : reader.GetString(4),
+            reader.GetString(5),
+            reader.GetString(6)
+            ));
+        }
+
+        return transactions;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.ToString());
+        return Error.Failure("Database.Error", $"Failed to retrieve recent transactions: {ex.Message}");
+    }
+}
+
+
 
 
     public static Transaction MapToDomainEntity(NpgsqlDataReader reader)
@@ -308,11 +367,6 @@ public class TransactionRepository : ITransactionRepository
         PaymentMethodId = reader.GetInt32(8)
     };
 }
-
-
-
-
-
 
 
 

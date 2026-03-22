@@ -9,11 +9,11 @@ namespace SampleCkWebApp.Application.RecurringTransactions;
 
 public static class RecurringTransactionValidator {
 public static ErrorOr<Success> ValidateCreateRecurringTransactionRequest(string name, FrequencyOfTransaction 
-    frequencyOfTransaction, DateOnly? nextRunDate, int userId, int categoryId, 
-    int paymentMethodId)
+    frequencyOfTransaction, DateOnly startDate, int userId, int categoryId, 
+    int paymentMethodId, decimal amount)
 {
 
-    if(categoryId <= 0 || userId <= 0 || paymentMethodId <= 0)
+    if(categoryId <= 0 || userId <= 0 || paymentMethodId <= 0 || amount <= 0)
         {
             
             return TransactionErrors.ForeignKeyMissing;
@@ -29,7 +29,7 @@ public static ErrorOr<Success> ValidateCreateRecurringTransactionRequest(string 
         if (string.IsNullOrWhiteSpace(name) || name.Length > 100)
     {
         
-        return CategoryErrors.InvalidName;
+        return RecurringTransactionErrors.InvalidName;
 
     }
 
@@ -45,11 +45,11 @@ public static ErrorOr<Success> ValidateCreateRecurringTransactionRequest(string 
 
 
     public static ErrorOr<Success> ValidateUpdateRecurringTransactionRequest(string name, FrequencyOfTransaction 
-    frequencyOfTransaction, DateOnly? nextRunDate, int categoryId, 
-    int paymentMethodId)
+    frequencyOfTransaction, DateOnly startDate, int categoryId, 
+    int paymentMethodId, decimal amount)
 {
 
-    if(categoryId <= 0 || paymentMethodId <= 0)
+    if(categoryId <= 0 || paymentMethodId <= 0 || amount <= 0)
         {
             
             return TransactionErrors.ForeignKeyMissing;
@@ -65,12 +65,12 @@ public static ErrorOr<Success> ValidateCreateRecurringTransactionRequest(string 
          if (string.IsNullOrWhiteSpace(name) || name.Length > 100)
     {
         
-        return CategoryErrors.InvalidName;
+        return RecurringTransactionErrors.InvalidName;
 
     }
 
      if (Regex.IsMatch(name, @"\d"))
-            return CategoryErrors.NameContainsNumbers;
+            return RecurringTransactionErrors.NameContainsNumbers;
     
 
     

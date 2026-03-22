@@ -22,10 +22,13 @@ public static class RecurringTransactions
             Id = recurringTransaction.Id,
             Name = recurringTransaction.Name,
             FrequencyOfTransaction = recurringTransaction.FrequencyOfTransaction.ToString(),
-            NextRunDate = recurringTransaction.NextRunDate,
             UserId = recurringTransaction.UserId,
             CategoryId = recurringTransaction.CategoryId,
-            PaymentMethodId = recurringTransaction.PaymentMethodId
+            PaymentMethodId = recurringTransaction.PaymentMethodId,
+            Amount = recurringTransaction.Amount,
+            StartDate = recurringTransaction.StartDate,
+            LastGeneratedDate = recurringTransaction.LastGeneratedDate,
+            IsActive = recurringTransaction.IsActive
         };
     }
 }

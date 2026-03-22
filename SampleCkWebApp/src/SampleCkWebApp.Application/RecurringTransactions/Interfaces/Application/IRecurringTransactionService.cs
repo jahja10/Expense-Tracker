@@ -16,11 +16,12 @@ public interface IRecurringTransactionService
     Task<ErrorOr<RecurringTransaction>> GetRecurringTransactionByIdAsync(int id, int userId, CancellationToken cancellationToken);
 
     Task<ErrorOr<RecurringTransaction>> CreateRecurringTransactionAsync(string name, FrequencyOfTransaction 
-    frequencyOfTransaction, DateOnly? nextRunDate, int userId, int categoryId, int paymentMethodId, CancellationToken cancellationToken);
+    frequencyOfTransaction, int userId, int categoryId, int paymentMethodId, decimal amount, DateOnly startDate, 
+    CancellationToken cancellationToken);
 
     Task<ErrorOr<RecurringTransaction>> UpdateRecurringTransactionAsync(int id, int userId, string? name, 
-    FrequencyOfTransaction? frequencyOfTransaction, DateOnly? nextRunDate, int? categoryId, int? paymentMethodId,
-    CancellationToken cancellationToken);
+    FrequencyOfTransaction? frequencyOfTransaction, int? categoryId, int? paymentMethodId, decimal? amount,
+    DateOnly? startDate, CancellationToken cancellationToken);
 
     Task<ErrorOr<bool>> DeleteRecurringTransactionAsync(int id, int userId, CancellationToken cancellationToken);
 

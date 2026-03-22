@@ -1,5 +1,6 @@
 using ErrorOr;
 using SampleCkWebApp.Domain.Entities;
+using  SampleCkWebApp.Contracts.Dashboard;
 
 namespace SampleCkWebApp.Application.Transactions.Interfaces.Infrastructure;
 
@@ -17,6 +18,8 @@ public interface ITransactionRepository
     Task <ErrorOr<Transaction>> UpdateTransactionAsync(Transaction transaction, CancellationToken cancellationToken);
 
     Task <ErrorOr<bool>> DeleteTransactionAsync (int id, int userId, CancellationToken cancellationToken);
+
+    Task <ErrorOr<List<DashboardTransactionsResponse>>> GetRecentTransactionsAsync(int userId, CancellationToken cancellationToken);
 
 
 
