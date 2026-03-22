@@ -3,10 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using SampleCkWebApp.RecurringTransactions;
 using SampleCkWebApp.Application.RecurringTransactions.Interfaces.Application;
 using SampleCkWebApp.Application.RecurringTransactions.Mappings;
-using System;
 using Microsoft.AspNetCore.Authorization;
-
-
 
 namespace SampleCkWebApp.WebApi.Controllers.RecurringTransactions;
 
@@ -16,9 +13,7 @@ namespace SampleCkWebApp.WebApi.Controllers.RecurringTransactions;
 [Produces("application/json")]
 public class RecurringTransactionsController : ApiControllerBase
 {
-    
-
-private readonly IRecurringTransactionService _recurringTransactionService;
+    private readonly IRecurringTransactionService _recurringTransactionService;
 
     public RecurringTransactionsController(IRecurringTransactionService recurringTransactionService)
     {
@@ -29,7 +24,7 @@ private readonly IRecurringTransactionService _recurringTransactionService;
     [ProducesResponseType(typeof(GetRecurringTransactionsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetRecurringTransactions(CancellationToken cancellationToken)
-    {   
+    {
         var userId = CurrentUserId;
         var result = await _recurringTransactionService.GetRecurringTransactionsAsync(userId, cancellationToken);
 
@@ -43,8 +38,10 @@ private readonly IRecurringTransactionService _recurringTransactionService;
     [ProducesResponseType(typeof(RecurringTransactionResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetRecurringTransactionById([FromRoute, Required] int id, CancellationToken cancellationToken)
-    {   
+    public async Task<IActionResult> GetRecurringTransactionById(
+        [FromRoute, Required] int id,
+        CancellationToken cancellationToken)
+    {
         var userId = CurrentUserId;
         var result = await _recurringTransactionService.GetRecurringTransactionByIdAsync(id, userId, cancellationToken);
 
@@ -59,34 +56,36 @@ private readonly IRecurringTransactionService _recurringTransactionService;
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateRecurringTransaction(
-    [FromBody, Required] CreateRecurringTransactionRequest request,
-    CancellationToken cancellationToken)
+        [FromBody, Required] CreateRecurringTransactionRequest request,
+        CancellationToken cancellationToken)
     {
-       var userId = CurrentUserId;
-       var frequencyOfTransaction = Enum.Parse<SampleCkWebApp.Domain.Enums.FrequencyOfTransaction>(
-       request.FrequencyOfTransaction.ToString(),
-       ignoreCase: true);
-       var result = await _recurringTransactionService.CreateRecurringTransactionAsync(
+        var userId = CurrentUserId;
 
-        request.Name,
-        frequencyOfTransaction,
-        request.NextRunDate,
-        userId,
-        request.CategoryId,
-        request.PaymentMethodId,
-        cancellationToken
+        var frequencyOfTransaction =
+            Enum.Parse<SampleCkWebApp.Domain.Enums.FrequencyOfTransaction>(
+                request.FrequencyOfTransaction.ToString(),
+                ignoreCase: true);
+
+        var result = await _recurringTransactionService.CreateRecurringTransactionAsync(
+            request.Name,
+            frequencyOfTransaction,
+            userId,
+            request.CategoryId,
+            request.PaymentMethodId,
+            request.Amount,
+            request.StartDate,
+            cancellationToken
         );
 
-
         return result.Match(
-        recurringTransaction => CreatedAtAction(
-            nameof(GetRecurringTransactionById),
-            new { id = recurringTransaction.Id},
-            recurringTransaction.ToResponse()
-        ),
-        Problem
-    );
-}
+            recurringTransaction => CreatedAtAction(
+                nameof(GetRecurringTransactionById),
+                new { id = recurringTransaction.Id },
+                recurringTransaction.ToResponse()
+            ),
+            Problem
+        );
+    }
 
     [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(RecurringTransactionResponse), StatusCodes.Status200OK)]
@@ -94,52 +93,50 @@ private readonly IRecurringTransactionService _recurringTransactionService;
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateRecurringTransaction(
-    [FromRoute, Required] int id,
-    [FromBody, Required] UpdateRecurringTransactionRequest request,
-    CancellationToken cancellationToken)
-    {   
+        [FromRoute, Required] int id,
+        [FromBody, Required] UpdateRecurringTransactionRequest request,
+        CancellationToken cancellationToken)
+    {
         var userId = CurrentUserId;
+
         var frequencyOfTransaction = request.FrequencyOfTransaction is null
-        ? (SampleCkWebApp.Domain.Enums.FrequencyOfTransaction?)null
-        : Enum.Parse<SampleCkWebApp.Domain.Enums.FrequencyOfTransaction>(
-        request.FrequencyOfTransaction.Value.ToString(),
-        ignoreCase: true);
+            ? (SampleCkWebApp.Domain.Enums.FrequencyOfTransaction?)null
+            : Enum.Parse<SampleCkWebApp.Domain.Enums.FrequencyOfTransaction>(
+                request.FrequencyOfTransaction.Value.ToString(),
+                ignoreCase: true);
 
         var result = await _recurringTransactionService.UpdateRecurringTransactionAsync(
             id,
             userId,
             request.Name,
             frequencyOfTransaction,
-            request.NextRunDate,          
-            request.CategoryId,            
-            request.PaymentMethodId,       
+            request.CategoryId,
+            request.PaymentMethodId,
+            request.Amount,
+            request.StartDate,
             cancellationToken
-);
+        );
 
-
-
-    return result.Match(
-        recurringTransaction => Ok(recurringTransaction.ToResponse()),
-        Problem
-    );
-}
+        return result.Match(
+            recurringTransaction => Ok(recurringTransaction.ToResponse()),
+            Problem
+        );
+    }
 
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteRecurringTransaction(
-    [FromRoute, Required] int id,
-    CancellationToken cancellationToken)
-{   
-    var userId = CurrentUserId;
-    var result = await _recurringTransactionService.DeleteRecurringTransactionAsync(id, userId, cancellationToken);
+        [FromRoute, Required] int id,
+        CancellationToken cancellationToken)
+    {
+        var userId = CurrentUserId;
+        var result = await _recurringTransactionService.DeleteRecurringTransactionAsync(id, userId, cancellationToken);
 
-    return result.Match(
-        _ => NoContent(),
-        Problem
-    );
-}
-
-
+        return result.Match(
+            _ => NoContent(),
+            Problem
+        );
+    }
 }

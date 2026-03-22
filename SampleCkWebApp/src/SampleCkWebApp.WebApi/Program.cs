@@ -48,6 +48,9 @@ using SampleCkWebApp.Infrastructure.Budgets;
 using SampleCkWebApp.Application.Budgets;
 using SampleCkWebApp.Application.Users.Auth;
 
+using SampleCkWebApp.Application.Dashboard;
+using SampleCkWebApp.Application.RecurringToTransaction;
+
 var builder = WebApplication.CreateBuilder(args);
 
 Console.WriteLine("ENV Database__ConnectionString = " + Environment.GetEnvironmentVariable("Database__ConnectionString"));
@@ -132,6 +135,7 @@ builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 builder.Services.AddScoped<IRecurringTransactionRepository, RecurringTransactionRepository>();
 builder.Services.AddScoped<IRecurringTransactionService, RecurringTransactionService>();
+builder.Services.AddScoped<IRecurringToTransactionService, RecurringToTransactionService>();
 
 builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
@@ -140,6 +144,9 @@ builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<LogInUser>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<RegisterUser>();
+
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
 
 
 
@@ -170,13 +177,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("frontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+
 
 var app = builder.Build();
 
 app.UseRouting();
-
+app.UseCors("frontend");
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 
 ServicePool.Create(app.Services);

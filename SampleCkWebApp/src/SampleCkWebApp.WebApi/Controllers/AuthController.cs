@@ -67,7 +67,7 @@ public class AuthController : ControllerBase
 
         if (registerResult.IsError)
         {
-            // možeš i Conflict ako je DuplicateEmail, ali ovo je najbrže:
+          
             return BadRequest(registerResult.Errors);
         }
 
