@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react"
+import {Link} from "react-router-dom"
 
 type Props = {
   userName: string
@@ -48,9 +49,12 @@ export default function MonthlyOverviewCard({
             )}
           </div>
 
-          <button className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg border border-white/10 bg-white/5 text-white/70 transition-colors hover:bg-white/10 hover:text-emerald-400">
+          <Link
+            to="/transactions"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg border border-white/10 bg-white/5 text-white/70 transition-colors hover:bg-white/10 hover:text-emerald-400"
+          >
             <Plus className="h-4 w-4" />
-          </button>
+          </Link>
         </div>
 
         <div className="relative mt-2 flex items-end justify-between gap-6">

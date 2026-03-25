@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import MonthlyOverviewCard from "../components/MonthlyOverviewCard"
 import BudgetStatusCard from "../components/BudgetStatusCard"
 import RecurringTransactionsCard from "../components/RecurringTransactionsCard"
@@ -23,7 +24,6 @@ type DashboardSummary = {
   totalTransactionsThisMonth: number
   upcomingPaymentsThisMonth: number
   averageDailySpending: number
-
 }
 
 type SpendingTrendItem = {
@@ -43,6 +43,8 @@ type RecentTransaction = {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate()
+
   const [data, setData] = useState<DashboardSummary | null>(null)
   const [spendingTrend, setSpendingTrend] = useState<SpendingTrendItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -58,6 +60,11 @@ export default function Dashboard() {
         setError(null)
 
         const token = localStorage.getItem("token")
+
+        if (!token) {
+          navigate("/login")
+          return
+        }
 
         const [summaryResponse, trendResponse, recentTransactionsResponse] =
           await Promise.all([
@@ -77,6 +84,16 @@ export default function Dashboard() {
               },
             }),
           ])
+
+        if (
+          summaryResponse.status === 401 ||
+          trendResponse.status === 401 ||
+          recentTransactionsResponse.status === 401
+        ) {
+          localStorage.removeItem("token")
+          navigate("/login")
+          return
+        }
 
         if (!summaryResponse.ok) {
           throw new Error("Failed to load dashboard data")
@@ -106,7 +123,7 @@ export default function Dashboard() {
     }
 
     fetchDashboard()
-  }, [])
+  }, [navigate])
 
   const userName = data?.userName ?? "User"
   const spentThisMonth = data?.spentThisMonth ?? 0
@@ -192,12 +209,12 @@ export default function Dashboard() {
         </div>
 
         <div className="col-span-4">
-           <QuickSummaryCard
-              totalTransactions={totalTransactionsThisMonth}
-              upcomingPayments={upcomingPaymentsThisMonth}
-              averagePerDay={averageDailySpending}
-              money={money}
-            />
+          <QuickSummaryCard
+            totalTransactions={totalTransactionsThisMonth}
+            upcomingPayments={upcomingPaymentsThisMonth}
+            averagePerDay={averageDailySpending}
+            money={money}
+          />
         </div>
       </div>
     </div>

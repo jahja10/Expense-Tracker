@@ -1,3 +1,5 @@
+import {Link} from "react-router-dom"
+
 type Props = {
   transactions: {
     price: number
@@ -19,9 +21,12 @@ export default function RecentTransactionsCard({ transactions }: Props) {
     Recent Transactions
   </h2>
 
-  <button className=" cursor-pointer rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-emerald-400">
-    View all
-  </button>
+  <Link
+  to="/transactions"
+  className="cursor-pointer rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-emerald-400"
+>
+  View all
+</Link>
 </div>
 
         {transactions.length === 0 ? (

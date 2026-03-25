@@ -31,6 +31,11 @@ public sealed class RegisterUser
         if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
             return Error.Validation("User.Password", "Password must be at least 6 characters.");
 
+            var existingUser = await _users.GetUserByEmailAsync(email, cancellationToken);
+
+                if (!existingUser.IsError && existingUser.Value is not null)
+                    return Error.Conflict("User.Email", "Email already exists.");
+
     
         var user = new User
         {

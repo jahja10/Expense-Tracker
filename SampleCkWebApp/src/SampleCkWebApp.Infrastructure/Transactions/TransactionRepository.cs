@@ -40,7 +40,7 @@ public class TransactionRepository : ITransactionRepository
 
                 @"SELECT id, price, transaction_date, transaction_type, description, location, user_id, category_id, payment_method_id FROM transaction 
                 WHERE user_id = @user_id
-                ORDER BY id",
+                ORDER BY transaction_date DESC, id DESC",
                 connection
 
             );     

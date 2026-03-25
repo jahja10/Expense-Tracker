@@ -41,7 +41,7 @@ public class RecurringTransactionRepository : IRecurringTransactionRepository
                 @"SELECT id, name, frequency_of_transaction, user_id, category_id, payment_method_id, amount, start_date, last_generated_date, is_active
                 FROM recurring_transaction 
                 WHERE user_id = @user_id
-                ORDER BY id",
+                ORDER BY start_date DESC, id DESC",
                 connection
 
             );            
